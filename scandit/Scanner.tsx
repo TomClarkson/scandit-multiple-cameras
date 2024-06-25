@@ -23,7 +23,11 @@ import {
 import { requestCameraPermissionsIfNeeded } from "./camera-permission-handler";
 import { useScanditContext } from "./ScanditContext";
 
-export function Scanner() {
+interface ScannerProps {
+  onBarcodeScanned: (barcode: { symbology: string; data: string }) => void;
+}
+
+export function Scanner({ onBarcodeScanned }: ScannerProps) {
   const viewRef = useRef<DataCaptureView>(null);
 
   const dataCaptureContext = useScanditContext();
@@ -49,7 +53,7 @@ export function Scanner() {
     return () => {
       handleAppStateChangeSubscription.remove();
       stopCapture();
-      dataCaptureContext.dispose();
+      // dataCaptureContext.dispose();
     };
   }, []);
 
@@ -129,12 +133,10 @@ export function Scanner() {
         // longer periods of time. See the documentation to learn more about this.
         setIsBarcodeCaptureEnabled(false);
 
-        Alert.alert(
-          "",
-          `Scanned: ${barcode.data} (${symbology.readableName})`,
-          [{ text: "OK", onPress: () => setIsBarcodeCaptureEnabled(true) }],
-          { cancelable: false }
-        );
+        onBarcodeScanned({
+          symbology: symbology.identifier,
+          data: barcode.data ?? "",
+        });
       },
     };
 
