@@ -1,7 +1,7 @@
 import { Button, SafeAreaView, Text, View } from "react-native";
 
-import { Scanner } from "@/scandit/Scanner";
 import { useCallback, useState } from "react";
+import { CameraScannerCapture } from "@/scandit/CameraScannerCapture";
 
 type ReadBarcode = {
   symbology: string;
@@ -37,7 +37,9 @@ export default function HomeScreen() {
           onPress={() => setIsOpen((o) => !o)}
           title={isOpen ? "Close Camera" : "Open Camera"}
         />
-        {isOpen && <Scanner onBarcodeScanned={handleBarcodeScanned} />}
+        {isOpen && (
+          <CameraScannerCapture onBarcodeScanned={handleBarcodeScanned} />
+        )}
       </View>
     </SafeAreaView>
   );

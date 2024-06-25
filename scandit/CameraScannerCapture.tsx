@@ -23,12 +23,15 @@ import {
 import { requestCameraPermissionsIfNeeded } from "./camera-permission-handler";
 import { useScanditContext } from "./ScanditContext";
 
-interface ScannerProps {
+interface CameraScannerCaptureProps {
   onBarcodeScanned: (barcode: { symbology: string; data: string }) => void;
   mode?: "multiScan" | "singleScan" | "findSKU";
 }
 
-export function Scanner({ onBarcodeScanned }: ScannerProps) {
+export function CameraScannerCapture({
+  onBarcodeScanned,
+  mode,
+}: CameraScannerCaptureProps) {
   const viewRef = useRef<DataCaptureView>(null);
 
   const dataCaptureContext = useScanditContext();
@@ -92,6 +95,9 @@ export function Scanner({ onBarcodeScanned }: ScannerProps) {
     // and are then applied to the barcode capture instance that manages barcode recognition.
     const settings = new BarcodeCaptureSettings();
 
+    // https://docs.scandit.com/5.7/windows/html/5f23c0d1-3048-4b02-01ad-ebd44d636632.htm
+    settings.codeDuplicateFilter = -1;
+
     // The settings instance initially has all types of barcodes (symbologies) disabled. For the purpose of this
     // sample we enable a very generous set of symbologies. In your own app ensure that you only enable the
     // symbologies that your app requires as every additional enabled symbology has an impact on processing times.
@@ -128,11 +134,9 @@ export function Scanner({ onBarcodeScanned }: ScannerProps) {
         const barcode = session.newlyRecognizedBarcodes[0];
         const symbology = new SymbologyDescription(barcode.symbology);
 
-        // The `alert` call blocks execution until it's dismissed by the user. As no further frames would be processed
-        // until the alert dialog is dismissed, we're showing the alert through a timeout and disabling the barcode
-        // capture mode until the dialog is dismissed, as you should not block the BarcodeCaptureListener callbacks for
-        // longer periods of time. See the documentation to learn more about this.
-        setIsBarcodeCaptureEnabled(false);
+        if (mode !== "multiScan") {
+          setIsBarcodeCaptureEnabled(false);
+        }
 
         onBarcodeScanned({
           symbology: symbology.identifier,
