@@ -8,6 +8,7 @@ import {
 
 import { useCallback, useState } from "react";
 import { CameraScannerCapture } from "@/scandit/CameraScannerCapture";
+import { skuSymbologies } from "@/scandit/defaultEnabledSymbologies";
 
 type ReadBarcode = {
   symbology: string;
@@ -82,6 +83,7 @@ export default function HomeScreen() {
           <CameraScannerCapture
             onBarcodeScanned={handleBarcodeScanned}
             mode="multiScan"
+            enabledSymbologies={skuSymbologies}
           />
         )}
       </View>

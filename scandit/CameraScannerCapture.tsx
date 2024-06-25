@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, AppState, AppStateStatus, BackHandler } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { AppState, AppStateStatus, BackHandler } from "react-native";
 import {
   BarcodeCapture,
   BarcodeCaptureOverlay,
@@ -19,18 +19,28 @@ import {
   RectangularViewfinderStyle,
   RectangularViewfinderLineStyle,
   VideoResolution,
+  SizeWithUnit,
+  NumberWithUnit,
+  MeasureUnit,
 } from "scandit-react-native-datacapture-core";
 import { requestCameraPermissionsIfNeeded } from "./camera-permission-handler";
 import { useScanditContext } from "./ScanditContext";
+import { PixelRatio } from "react-native";
+import { defaultEnabledSymbologies } from "./defaultEnabledSymbologies";
+
+export const CAMERA_TARGET_SCAN_SQUIRCLE_SIZE =
+  PixelRatio.getPixelSizeForLayoutSize(180);
 
 interface CameraScannerCaptureProps {
   onBarcodeScanned: (barcode: { symbology: string; data: string }) => void;
   mode?: "multiScan" | "singleScan" | "findSKU";
+  enabledSymbologies?: Symbology[];
 }
 
 export function CameraScannerCapture({
   onBarcodeScanned,
   mode,
+  enabledSymbologies = defaultEnabledSymbologies,
 }: CameraScannerCaptureProps) {
   const viewRef = useRef<DataCaptureView>(null);
 
@@ -101,16 +111,7 @@ export function CameraScannerCapture({
     // The settings instance initially has all types of barcodes (symbologies) disabled. For the purpose of this
     // sample we enable a very generous set of symbologies. In your own app ensure that you only enable the
     // symbologies that your app requires as every additional enabled symbology has an impact on processing times.
-    settings.enableSymbologies([
-      Symbology.EAN13UPCA,
-      Symbology.EAN8,
-      Symbology.UPCE,
-      Symbology.QR,
-      Symbology.DataMatrix,
-      Symbology.Code39,
-      Symbology.Code128,
-      Symbology.InterleavedTwoOfFive,
-    ]);
+    settings.enableSymbologies(enabledSymbologies);
 
     // Some linear/1d barcode symbologies allow you to encode variable-length data. By default, the Scandit
     // Data Capture SDK only scans barcodes in a certain length range. If your application requires scanning of one
@@ -121,6 +122,14 @@ export function CameraScannerCapture({
     symbologySettings.activeSymbolCounts = [
       7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     ];
+
+    const dataMatrixSettings = settings.settingsForSymbology(
+      Symbology.DataMatrix
+    );
+    dataMatrixSettings.isColorInvertedEnabled = true;
+
+    const qrSettings = settings.settingsForSymbology(Symbology.QR);
+    qrSettings.isColorInvertedEnabled = true;
 
     // Create new barcode capture mode with the settings from above.
     const barcodeCapture = BarcodeCapture.forContext(
@@ -155,10 +164,23 @@ export function CameraScannerCapture({
       null,
       BarcodeCaptureOverlayStyle.Frame
     );
-    overlay.viewfinder = new RectangularViewfinder(
-      RectangularViewfinderStyle.Square,
+
+    const rect = new RectangularViewfinder(
+      RectangularViewfinderStyle.Rounded,
       RectangularViewfinderLineStyle.Light
     );
+
+    rect.setSize(
+      new SizeWithUnit(
+        new NumberWithUnit(CAMERA_TARGET_SCAN_SQUIRCLE_SIZE, MeasureUnit.Pixel),
+        new NumberWithUnit(CAMERA_TARGET_SCAN_SQUIRCLE_SIZE, MeasureUnit.Pixel)
+      )
+    );
+
+    // adds a dimmed background in scope area
+    rect.dimming = 0.2;
+    overlay.viewfinder = rect;
+
     viewRef.current?.addOverlay(overlay);
     setBarcodeCaptureMode(barcodeCapture);
   };
