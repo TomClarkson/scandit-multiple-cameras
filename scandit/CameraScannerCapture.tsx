@@ -182,6 +182,7 @@ export function CameraScannerCapture({
     overlay.viewfinder = rect;
 
     viewRef.current?.addOverlay(overlay);
+
     setBarcodeCaptureMode(barcodeCapture);
   };
 
