@@ -83,7 +83,6 @@ export default function HomeScreen() {
           <CameraScannerCapture
             onBarcodeScanned={handleBarcodeScanned}
             mode="multiScan"
-            enabledSymbologies={skuSymbologies}
           />
         )}
       </View>
