@@ -25,6 +25,7 @@ import { useScanditContext } from "./ScanditContext";
 
 interface ScannerProps {
   onBarcodeScanned: (barcode: { symbology: string; data: string }) => void;
+  mode?: "multiScan" | "singleScan" | "findSKU";
 }
 
 export function Scanner({ onBarcodeScanned }: ScannerProps) {
